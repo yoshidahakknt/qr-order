@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QR注文</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --card:#ffffff;
+      --txt:#111111;
+      --muted:#666666;
+      --line:#dddddd;
+      --accent:#2563eb;
+      --shadow: 0 10px 24px rgba(0,0,0,.10);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+                   "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+    }
+
+    body{
+      margin:0;
+      background: var(--bg);
+      color: var(--txt);
+      display:flex;
+      justify-content:center;
+      padding:22px 10px 40px;
+    }
+
+    /* phone frame */
+    .phone{
+      width:min(420px, 96vw);
+      background:#fff;
+      border:1px solid #e5e5e5;
+      border-radius:28px;
+      box-shadow: var(--shadow);
+      padding:12px;
+    }
+
+    .screen{
+      border-radius:22px;
+      overflow:hidden;
+      background:#fff;
+      border:1px solid #e9e9e9;
+      position:relative;
+      min-height: 780px;
+    }
+
+    .status{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px 14px 8px;
+      color:#333;
+      font-size:12px;
+    }
+
+    header{
+      padding: 4px 14px 10px;
+      border-bottom:1px solid #f0f0f0;
+    }
+    .title{
+      font-size:18px;
+      font-weight:800;
+      margin:0;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:10px;
+    }
+    .sub{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .badge{
+      border:1px solid var(--line);
+      background:#fafafa;
+      padding:4px 10px;
+      border-radius:999px;
+    }
+
+    .search{
+      padding: 10px 14px 10px;
+    }
+    .search input{
+      width:100%;
+      box-sizing:border-box;
+      padding:12px 12px;
+      border-radius: 12px;
+      border:1px solid var(--line);
+      background:#fff;
+      color: var(--txt);
+      outline:none;
+      font-size:14px;
+    }
+    .search input::placeholder{ color:#999; }
+
+    .tabs{
+      display:flex;
+      gap:8px;
+      padding: 0 14px 10px;
+      overflow:auto;
+    }
+    .tab{
+      white-space:nowrap;
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:#111;
+      font-size:13px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .tab.active{
+      background: rgba(37,99,235,.10);
+      border-color: rgba(37,99,235,.45);
+      color:#0b2a7a;
+      font-weight:700;
+    }
+
+    .content{
+      padding: 6px 14px 116px;
+      display:grid;
+      gap:10px;
+    }
+
+    .card{
+      background: var(--card);
+      border:1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .menuItem{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      flex:1;
+      min-width:0;
+    }
+
+    .thumb{
+      width:70px;height:70px;
+      border-radius:14px;
+      background:#f3f4f6;
+      border:1px solid #e5e7eb;
+      flex:0 0 auto;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    .name{
+      font-weight:800;
+      margin:0;
+      font-size:15px;
+      line-height:1.35;
+      word-break:break-word;
+    }
+    .desc{
+      margin:6px 0 0;
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .right{
+      text-align:right;
+      min-width:110px;
+    }
+    .price{
+      font-weight:900;
+      font-size:14px;
+    }
+
+    .qty{
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:8px;
+    }
+    .btn{
+      border:1px solid var(--line);
+      background:#fff;
+      color:#111;
+      width:34px;height:34px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:18px;
+      line-height:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .count{
+      width:28px;
+      text-align:center;
+      color:#111;
+      font-weight:900;
+    }
+
+    .chips{
+      margin-top:10px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .chip{
+      font-size:11px;
+      color:#333;
+      border:1px dashed #cfcfcf;
+      background:#fbfbfb;
+      padding:6px 10px;
+      border-radius:999px;
+    }
+
+    /* bottom bar */
+    .bottom{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.92) 30%, rgba(255,255,255,1));
+      border-top:1px solid #f0f0f0;
+      padding: 12px 12px 14px;
+      display:grid;
+      gap:10px;
+    }
+    .summary{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius: 16px;
+      padding: 10px 12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      font-size:13px;
+    }
+    .summary strong{ font-size:15px; }
+
+    .cta{
+      display:flex;
+      gap:10px;
+    }
+    .primary{
+      flex:1;
+      background: var(--accent);
+      border:1px solid rgba(0,0,0,.05);
+      color:#fff;
+      padding:14px 12px;
+      border-radius: 16px;
+      font-weight:900;
+      font-size:15px;
+      cursor:pointer;
+    }
+    .ghost{
+      width:54px;
+      background:#fff;
+      border:1px solid var(--line);
+      color:#111;
+      border-radius: 16px;
+      cursor:pointer;
+      font-size:18px;
+    }
+
+    .toast{
+      position:absolute;
+      left:50%;
+      transform: translateX(-50%);
+      bottom: 100px;
+      background:#111;
+      color:#fff;
+      border:1px solid rgba(255,255,255,.15);
+      padding:10px 12px;
+      border-radius: 999px;
+      font-size:12px;
+      display:none;
+      max-width: 90%;
+      text-align:center;
+      box-shadow: 0 10px 20px rgba(0,0,0,.18);
+    }
+
+    /* category show/hide */
+    .hidden{ display:none; }
+  </style>
+</head>
+
+<body>
+  <div class="phone">
+    <div class="screen" id="screen">
+
+      <div class="status">
+        <div>12:34</div>
+        <div style="color:#555;">店内Wi-Fi / QR注文</div>
+      </div>
+
+      <header>
+        <div class="title">
+          <span>〇〇ダイニング</span>
+          <span style="font-size:12px;color:#666;font-weight:700;">テーブル <span style="color:#111;">A-12</span></span>
+        </div>
+        <div class="sub">
+          <span class="badge">注文は店員さんに届きます</span>
+          <span class="badge">会計はレジでOK</span>
+        </div>
+      </header>
+
+      <div class="search">
+        <input id="search" placeholder="例：唐揚げ、コーヒー、デザート…" />
+      </div>
+
+      <div class="tabs" id="tabs">
+        <div class="tab active" data-cat="all">人気</div>
+        <div class="tab" data-cat="recommend">おすすめ</div>
+        <div class="tab" data-cat="food">フード</div>
+        <div class="tab" data-cat="drink">ドリンク</div>
+        <div class="tab" data-cat="dessert">デザート</div>
+      </div>
+
+      <main class="content" id="list">
+
+        <!-- フード -->
+        <section class="card item" data-cat="food recommend" data-name="若鶏の唐揚げ">
+          <div class="row">
+            <div class="menuItem">
+              <div class="thumb">
+                <img src="karaage.jpg" alt="若鶏の唐揚げ">
+              </div>
+              <div>
+                <p class="name">若鶏の唐揚げ（5個）</p>
+                <p class="desc">外カリッ、中ジューシー。レモン付き</p>
+                <div class="chips">
+                  <span class="chip">おすすめ</span>
+                  <span class="chip">提供目安 10分</span>
+                </div>
+              </div>
+            </div>
+            <div class="right">
+              <div class="price">¥680</div>
+              <div class="qty" data-price="680">
+                <button class="btn minus" type="button">−</button>
+                <div class="count">0</div>
+                <button class="btn plus" type="button">＋</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card item" data-cat="food" data-name="本日のパスタ トマト">
+          <div class="row">
+            <div class="menuItem">
+              <div class="thumb">
+                <img src="pasta.jpg" alt="本日のパスタ">
+              </div>
+              <div>
+                <p class="name">本日のパスタ（トマト）</p>
+                <p class="desc">チーズ多め・辛さ控えめ</p>
+                <div class="chips">
+                  <span class="chip">人気</span>
+                  <span class="chip">辛さ変更OK</span>
+                </div>
+              </div>
+            </div>
+            <div class="right">
+              <div class="price">¥980</div>
+              <div class="qty" data-price="980">
+                <button class="btn minus" type="button">−</button>
+                <div class="count">0</div>
+                <button class="btn plus" type="button">＋</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ドリンク -->
+        <section class="card item" data-cat="drink" data-name="アイスコーヒー">
+          <div class="row">
+            <div class="menuItem">
+              <div class="thumb">
+                <img src="coffee.jpg" alt="アイスコーヒー">
+              </div>
+              <div>
+                <p class="name">アイスコーヒー</p>
+                <p class="desc">食後にどうぞ</p>
+                <div class="chips">
+                  <span class="chip">ドリンク</span>
+                  <span class="chip">氷少なめ可</span>
+                </div>
+              </div>
+            </div>
+            <div class="right">
+              <div class="price">¥420</div>
+              <div class="qty" data-price="420">
+                <button class="btn minus" type="button">−</button>
+                <div class="count">0</div>
+                <button class="btn plus" type="button">＋</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- デザート -->
+        <section class="card item" data-cat="dessert" data-name="ミニチーズケーキ">
+          <div class="row">
+            <div class="menuItem">
+              <div class="thumb">
+                <img src="cake.jpg" alt="ミニチーズケーキ">
+              </div>
+              <div>
+                <p class="name">ミニチーズケーキ</p>
+                <p class="desc">しっとり濃厚</p>
+                <div class="chips">
+                  <span class="chip">デザート</span>
+                  <span class="chip">持ち帰り不可</span>
+                </div>
+              </div>
+            </div>
+            <div class="right">
+              <div class="price">¥480</div>
+              <div class="qty" data-price="480">
+                <button class="btn minus" type="button">−</button>
+                <div class="count">0</div>
+                <button class="btn plus" type="button">＋</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- メモ -->
+        <section class="card">
+          <p class="name">注文メモ（任意）</p>
+          <p class="desc">例：唐揚げはレモン別添え / パスタは辛さなし など</p>
+          <textarea id="memo" placeholder="ここに要望をご記入ください"
+            style="width:100%;box-sizing:border-box;margin-top:10px;min-height:84px;
+                   border-radius:12px;border:1px solid #dddddd;background:#fff;color:#111;
+                   padding:10px 12px;outline:none;resize:vertical;"></textarea>
+        </section>
+
+      </main>
+
+      <div class="toast" id="toast">注文を送信しました ✅</div>
+
+      <div class="bottom">
+        <div class="summary">
+          <div>合計</div>
+          <div><strong id="total">¥0</strong> <span style="color:#666">（税込想定）</span></div>
+        </div>
+        <div class="cta">
+          <button class="ghost" id="help" type="button" title="呼び出し">🔔</button>
+          <button class="primary" id="order" type="button">この内容で注文する</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const fmt = (n)=> "¥" + n.toLocaleString("ja-JP");
+    const totalEl = document.getElementById("total");
+    const toast = document.getElementById("toast");
+    const tabs = document.querySelectorAll(".tab");
+    const items = document.querySelectorAll(".item");
+    const search = document.getElementById("search");
+
+    function calcTotal(){
+      let sum = 0;
+      document.querySelectorAll(".qty").forEach(q=>{
+        const price = Number(q.dataset.price || 0);
+        const count = Number(q.querySelector(".count").textContent || 0);
+        sum += price * count;
+      });
+      totalEl.textContent = fmt(sum);
+      return sum;
+    }
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.style.display = "block";
+      clearTimeout(showToast.t);
+      showToast.t = setTimeout(()=> toast.style.display="none", 1700);
+    }
+
+    // 数量ボタン
+    document.querySelectorAll(".qty").forEach(q=>{
+      const minus = q.querySelector(".minus");
+      const plus  = q.querySelector(".plus");
+      const countEl = q.querySelector(".count");
+
+      minus.addEventListener("click", ()=>{
+        let c = Number(countEl.textContent||0);
+        c = Math.max(0, c-1);
+        countEl.textContent = String(c);
+        calcTotal();
+      });
+      plus.addEventListener("click", ()=>{
+        let c = Number(countEl.textContent||0);
+        c = Math.min(9, c+1);
+        countEl.textContent = String(c);
+        calcTotal();
+      });
+    });
+
+    // タブでカテゴリ切替
+    function applyFilter(){
+      const active = document.querySelector(".tab.active")?.dataset.cat || "all";
+      const q = (search.value || "").trim().toLowerCase();
+
+      items.forEach(el=>{
+        const cats = (el.dataset.cat || "");
+        const name = (el.dataset.name || "").toLowerCase();
+
+        const catOk = (active === "all")
+          ? true
+          : (active === "recommend")
+            ? cats.includes("recommend")
+            : cats.includes(active);
+
+        const searchOk = q ? name.includes(q) : true;
+
+        el.classList.toggle("hidden", !(catOk && searchOk));
+      });
+    }
+
+    tabs.forEach(tab=>{
+      tab.addEventListener("click", ()=>{
+        tabs.forEach(t=>t.classList.remove("active"));
+        tab.classList.add("active");
+        applyFilter();
+      });
+    });
+
+    search.addEventListener("input", applyFilter);
+
+    // 注文/呼び出し（ダミー動作）
+    document.getElementById("order").addEventListener("click", ()=>{
+      const sum = calcTotal();
+      if(sum === 0){
+        showToast("商品が選択されていません");
+        return;
+      }
+      showToast("注文を送信しました ✅");
+    });
+
+    document.getElementById("help").addEventListener("click", ()=>{
+      showToast("店員呼び出しを押しました 🔔");
+    });
+
+    calcTotal();
+    applyFilter();
+  </script>
+</body>
+</html>
