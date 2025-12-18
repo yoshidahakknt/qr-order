@@ -279,22 +279,24 @@
       font-size:18px;
     }
 
-    .toast{
-      position:absolute;
-      left:50%;
-      transform: translateX(-50%);
-      bottom: 100px;
-      background:#111;
-      color:#fff;
-      border:1px solid rgba(255,255,255,.15);
-      padding:10px 12px;
-      border-radius: 999px;
-      font-size:12px;
-      display:none;
-      max-width: 90%;
-      text-align:center;
-      box-shadow: 0 10px 20px rgba(0,0,0,.18);
-    }
+   .toast{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform: translate(-50%, -50%);
+  background:#111;
+  color:#fff;
+  border:1px solid rgba(255,255,255,.15);
+  padding:14px 18px;
+  border-radius: 999px;
+  font-size:14px;
+  display:none;
+  max-width: 90%;
+  text-align:center;
+  box-shadow: 0 10px 20px rgba(0,0,0,.18);
+  z-index: 1000;
+}
+
 
     /* category show/hide */
     .hidden{ display:none; }
@@ -566,5 +568,6 @@
   </script>
 </body>
 </html>
+
 
 
